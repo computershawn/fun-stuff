@@ -65,43 +65,51 @@ function findBounds(activeDocument) {
 function toggleLayers(activeDocument, index, showAll) {
   // const layersRef = activeDocument.artLayers;
   const layersRef = activeDocument.layers;
+  console.log('index', index);
 
   if (showAll) {
-    for (let i = 0; i < layersRef.length; i++) {
-      // layersRef[i].visible = true;
-    }
+    // for (let i = 0; i < layersRef.length; i++) {
+    //   layersRef[i].visible = true;
+    // }
+    activeDocument.layers.forEach((layer) => {
+      layer.visible = true;
+    });
     return;
   }
 
   // Hide all layers
-  for (let i = 0; i < layersRef.length; i++) {
-    // layersRef[i].visible = false;
-  }
+  // for (let i = 0; i < layersRef.length; i++) {
+  //   layersRef[i].visible = false;
+  // }
+  activeDocument.layers.forEach((layer) => {
+    layer.visible = false;
+  });
 
-  // And then show specifed layers
-  // var layersRef = activeDocument.artLayers;
-  var currentLayerRef = layersRef[index];
+  // // And then show specifed layers
+  // // var layersRef = activeDocument.artLayers;
+  // const currentLayerRef = layersRef[index];
 
-  var prefix = currentLayerRef.name.substring(0, 5);
-  var isPage = prefix === 'page-';
-  if (!isPage) {
-    return false;
-  }
+  // const prefix = currentLayerRef.name.substring(0, 5);
+  // const isPage = prefix === 'page-';
+  // if (!isPage) {
+  //   return false;
+  // }
 
-  if (currentLayerRef !== null) {
-    currentLayerRef.visible = true;
-  }
+  // if (currentLayerRef !== null) {
+  //   currentLayerRef.visible = true;
+  // }
 
-  var bgLayerRef = layersRef.getByName('background');
-  if (bgLayerRef !== null) {
-    bgLayerRef.visible = true;
-  }
+  // const bgLayerRef = layersRef.getByName('background');
+  // if (bgLayerRef !== null) {
+  //   bgLayerRef.visible = true;
+  // }
 
   return true;
 }
 
 function exportFile(docRef, docPath, num) {
   var filename = docPath + '/frames/' + 'frame' + '-' + num + '.jpg';
+  console.log('filename', filename);
   var saveFileJPEG = File(filename);
 
   var options = new ExportOptionsSaveForWeb();
@@ -130,100 +138,166 @@ function exportFile(docRef, docPath, num) {
 }
 
 function eyBroDoTheThing() {
-  const app = require('photoshop').app;
-  var sourceDocRef = app.activeDocument;
-  var rows = 5;
-  var cols = 4;
-  var bounds = findBounds(app.activeDocument);
+  return window.require('photoshop').core.executeAsModal(() => {
+    const app = require('photoshop').app;
+    var sourceDocRef = app.activeDocument;
+    var rows = 6;
+    var cols = 6;
+    var bounds = findBounds(app.activeDocument);
 
-  if (bounds.error) {
-    alert('Oh noes! Something went wrong…');
-    return;
-  }
-
-  var x0 = bounds.x0;
-  var y0 = bounds.y0;
-  var hStep = bounds.hStep;
-  var vStep = bounds.vStep;
-  var wd = bounds.wd;
-  var ht = bounds.ht;
-
-  var resolution = sourceDocRef.resolution;
-  var sec = Math.floor(Date.now() / 1000).toString();
-  var docName = 'tempFile-' + sec;
-  // var newDocRef = createDocument(app, wd, ht, resolution, docName);
-  const newDocRef = app.documents.add(wd, ht, resolution, docName);
-  console.log(wd, ht, resolution, docName);
-  // console.log('newDocRef', newDocRef);
-
-  app.activeDocument = sourceDocRef;
-
-  const sourceDocPath = sourceDocRef.path;
-  // var j = 0;
-  let currentPage = 0;
-  const numLayers = sourceDocRef.layers.length;
-
-  for (let k = 0; k < numLayers; k++) {
-    // Copy layer contents if the layer's name starts with 'page-'
-    const shouldCopyLayer = toggleLayers(k);
-    if (shouldCopyLayer) {
-      let x, y;
-      for (let i = 0; i < rows; i++) {
-        y = y0 + i * vStep;
-        for (let j = 0; j < cols; j++) {
-          const frameNumber = currentPage * rows * cols + i * cols + j + 1;
-          x = x0 + j * hStep;
-          const selRegion = [
-            [x, y],
-            [x + wd, y],
-            [x + wd, y + ht],
-            [x, y + ht],
-            [x, y],
-          ];
-
-          sourceDocRef.selection.select(selRegion);
-          sourceDocRef.selection.copy(true);
-          app.activeDocument = newDocRef;
-          newDocRef.paste();
-
-          exportFile(newDocRef, sourceDocPath, frameNumber);
-
-          // Delete newly added layer since it's no longer needed
-          var newDocLayersRef = newDocRef.layers;
-          newDocLayersRef[0].remove();
-
-          app.activeDocument = sourceDocRef;
-        }
-      }
-      currentPage += 1;
+    if (bounds.error) {
+      alert('Oh noes! Something went wrong…');
+      return;
     }
-  }
 
-  // Turn on display of all layers
-  toggleLayers(app.activeDocument, 0, true);
+    var x0 = bounds.x0;
+    var y0 = bounds.y0;
+    var hStep = bounds.hStep;
+    var vStep = bounds.vStep;
+    var wd = bounds.wd;
+    var ht = bounds.ht;
 
-  // Close the temporary document
-  app.activeDocument = newDocRef;
-  newDocRef.close(SaveOptions.DONOTSAVECHANGES);
+    var resolution = sourceDocRef.resolution;
+    var sec = Math.floor(Date.now() / 1000).toString();
+    var docName = 'tempFile-' + sec;
+    // var newDocRef = createDocument(app, wd, ht, resolution, docName);
+    const newDocRef = app.documents.add(wd, ht, resolution, docName);
+    // console.log(wd, ht, resolution, docName);
+    // console.log('newDocRef', newDocRef);
+
+    app.activeDocument = sourceDocRef;
+
+    const sourceDocPath = sourceDocRef.path;
+    // var j = 0;
+    let currentPage = 0;
+    const numLayers = sourceDocRef.layers.length;
+    // console.log('numLayers', numLayers);
+
+    //     for (let k = 0; k < numLayers; k++) {
+    //       console.log('k', k);
+    //       // Copy layer contents if the layer's name starts with 'page-'
+    //       const shouldCopyLayer = toggleLayers(k);
+    //       console.log('shouldCopyLayer', shouldCopyLayer);
+    //       if (shouldCopyLayer) {
+    //         let x, y;
+    //         for (let i = 0; i < rows; i++) {
+    //           y = y0 + i * vStep;
+    //           for (let j = 0; j < cols; j++) {
+    //             const frameNumber = currentPage * rows * cols + i * cols + j + 1;
+    //             x = x0 + j * hStep;
+    //             const selRegion = [
+    //               [x, y],
+    //               [x + wd, y],
+    //               [x + wd, y + ht],
+    //               [x, y + ht],
+    //               [x, y],
+    //             ];
+
+    //             sourceDocRef.selection.select(selRegion);
+    //             sourceDocRef.selection.copy(true);
+    //             app.activeDocument = newDocRef;
+    //             newDocRef.paste();
+
+    //             exportFile(newDocRef, sourceDocPath, frameNumber);
+
+    //             // Delete newly added layer since it's no longer needed
+    //             var newDocLayersRef = newDocRef.layers;
+    //             newDocLayersRef[0].remove();
+
+    //             app.activeDocument = sourceDocRef;
+    //           }
+    //         }
+    //         currentPage += 1;
+    //       }
+    //     }
+
+    //     // Turn on display of all layers
+    //     toggleLayers(app.activeDocument, 0, true);
+
+    //     // Close the temporary document
+    //     app.activeDocument = newDocRef;
+    //     newDocRef.close(SaveOptions.DONOTSAVECHANGES);
+    //   });
+    // }
+
+    // let shouldCopy = toggleLayers(0);
+    // console.log('shouldCopy', shouldCopy);
+    // shouldCopy = toggleLayers(1);
+    // console.log('shouldCopy', shouldCopy);
+    // shouldCopy = toggleLayers(2);
+    // console.log('shouldCopy', shouldCopy);
+
+    app.activeDocument.layers.forEach(async (layer, k) => {
+      // console.log('k', k);
+      // Copy layer contents if the layer's name starts with 'page-'
+      const shouldCopyLayer = toggleLayers(app.activeDocument, k);
+      // console.log('shouldCopyLayer', shouldCopyLayer);
+      if (shouldCopyLayer) {
+        // console.log('shouldCopyLayer', shouldCopyLayer);
+        let x, y;
+        for (let i = 0; i < rows; i++) {
+          y = y0 + i * vStep;
+          for (let j = 0; j < cols; j++) {
+            const frameNumber = currentPage * rows * cols + i * cols + j + 1;
+            x = x0 + j * hStep;
+            // const selRegion = [
+            //   [x, y],
+            //   [x + wd, y],
+            //   [x + wd, y + ht],
+            //   [x, y + ht],
+            //   [x, y],
+            // ];
+            console.log('x', x);
+
+            // sourceDocRef.selection.select(selRegion);
+            await sourceDocRef.selection.selectRectangle(
+              {top: x, left: y, bottom: y + ht, right: x + wd},
+              constants.SelectionType.REPLACE
+            );
+          
+
+            sourceDocRef.selection.copy(true);
+            // app.activeDocument = newDocRef;
+            newDocRef.paste();
+
+            // exportFile(newDocRef, sourceDocPath, frameNumber);
+
+            // // Delete newly added layer since it's no longer needed
+            // var newDocLayersRef = newDocRef.layers;
+            // newDocLayersRef[0].remove();
+
+            // app.activeDocument = sourceDocRef;
+          }
+        }
+        currentPage += 1;
+      }
+    });
+
+    // Turn on display of all layers
+    toggleLayers(app.activeDocument, 0, true);
+    console.log('--------');
+
+    // Close the temporary document
+    app.activeDocument = newDocRef;
+    newDocRef.close(SaveOptions.DONOTSAVECHANGES);
+  });
 }
 
-function showLayerNames() {
-  const app = require('photoshop').app;
-  const allLayers = app.activeDocument.layers;
-  const allLayerNames = allLayers.map(
-    (layer) => `${layer.name} (${layer.opacity} %)`
-  );
-  const sortedNames = allLayerNames.sort((a, b) =>
-    a < b ? -1 : a > b ? 1 : 0
-  );
-  document.getElementById('layers').innerHTML = `
-      <ul>${sortedNames.map((name) => `<li>${name}</li>`).join('')}</ul>`;
-}
+// function showLayerNames() {
+//   const app = require('photoshop').app;
+//   const allLayers = app.activeDocument.layers;
+//   const allLayerNames = allLayers.map(
+//     (layer) => `${layer.name} (${layer.opacity} %)`
+//   );
+//   const sortedNames = allLayerNames.sort((a, b) =>
+//     a < b ? -1 : a > b ? 1 : 0
+//   );
+//   document.getElementById('layers').innerHTML = `
+//       <ul>${sortedNames.map((name) => `<li>${name}</li>`).join('')}</ul>`;
+// }
 
 // document
 //   .getElementById('btnPopulate')
 //   .addEventListener('click', showLayerNames);
 
-document
-  .getElementById('btnPopulate')
-  .addEventListener('click', eyBroDoTheThing);
+document.getElementById('btnRename').addEventListener('click', eyBroDoTheThing);
