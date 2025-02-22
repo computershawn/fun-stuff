@@ -40,33 +40,17 @@
           "width": 32,
           "height": 32,
           "path": "icons/icon_D.png",
-          "scale": [
-            1,
-            2
-          ],
-          "theme": [
-            "dark",
-            "darkest"
-          ],
-          "species": [
-            "generic"
-          ]
+          "scale": [1, 2],
+          "theme": ["dark", "darkest"],
+          "species": ["generic"]
         },
         {
           "width": 32,
           "height": 32,
           "path": "icons/icon_N.png",
-          "scale": [
-            1,
-            2
-          ],
-          "theme": [
-            "lightest",
-            "light"
-          ],
-          "species": [
-            "generic"
-          ]
+          "scale": [1, 2],
+          "theme": ["lightest", "light"],
+          "species": ["generic"]
         }
       ],
       "label": {
@@ -79,28 +63,19 @@
       "width": 23,
       "height": 23,
       "path": "icons/dark.png",
-      "scale": [
-        1,
-        2
-      ],
-      "theme": [
-        "darkest",
-        "dark",
-        "medium"
-      ]
+      "scale": [1, 2],
+      "theme": ["darkest", "dark", "medium"]
     },
     {
       "width": 23,
       "height": 23,
       "path": "icons/light.png",
-      "scale": [
-        1,
-        2
-      ],
-      "theme": [
-        "lightest",
-        "light"
-      ]
+      "scale": [1, 2],
+      "theme": ["lightest", "light"]
     }
-  ]
+  ],
+  "requiredPermissions": {
+    "clipboard": "readAndWrite",
+    "localFileSystem": "request"
+  }
 }

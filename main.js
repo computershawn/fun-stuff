@@ -1,303 +1,274 @@
-const { entrypoints } = require('uxp');
+// [...]
 
-showAlert = () => {
-  alert('This is an alert message');
-};
+// async function doTheDamnThing() {
+//   // create the TSV string
+//   let tsvString = 'Base name\tOpacity\tIs visible';
 
-entrypoints.setup({
-  commands: {
-    showAlert,
-  },
-  panels: {
-    vanilla: {
-      show(node) {},
-    },
-  },
-});
+//   const { app, constants } = window.require('photoshop');
+//   const doc = app.activeDocument;
 
-// The bounds of the area to be copied are indicated
-// by 6 guides that you place in the Photoshop document
-// There should be 3 vertical guides and 3 horizontal
-// guides
-function findBounds(activeDocument) {
-  var numVertGuides = 3;
-  var numHorzGuides = 3;
-  var hGuides = [];
-  var vGuides = [];
+//   doc.layers.forEach((layer) => {
+//     tsvString +=
+//       '\n' +
+//       layer.name +
+//       '\t' +
+//       layer.opacity +
+//       '\t' +
+//       (layer.visible ? 'yes' : 'no');
+//   });
 
-  var guides = activeDocument.guides;
+//   console.log('tsvString', tsvString);
+//   // console.log(
+//   //   'constants.SelectionType.REPLACE',
+//   //   constants.SelectionType.REPLACE
+//   // );
 
-  for (let i = 0; i < guides.length; i++) {
-    if (guides[i].direction === 'horizontal') {
-      hGuides.push(guides[i].coordinate);
-    }
-    if (guides[i].direction === 'vertical') {
-      vGuides.push(guides[i].coordinate);
-    }
-    if (hGuides.length === numHorzGuides && vGuides.length === numVertGuides) {
-      break;
-    }
-  }
+//   // save the string to the filesystem
+//   const storage = window.require('uxp').storage;
+//   // console.log('storage', storage);
+//   // const file = await storage.localFileSystem.getFileForSaving('layers.tsv');
+//   // console.log('file', file);
+//   // await file.write(tsvString);
 
-  if (hGuides.length < numHorzGuides || vGuides.length < numVertGuides) {
-    return { error: true };
-  } else {
-    var h = hGuides.sort(function (a, b) {
-      return a > b ? 1 : -1;
-    });
-    var v = vGuides.sort(function (a, b) {
-      return a > b ? 1 : -1;
-    });
+//   // try {
+//   //   if (!app.activeDocument) {
+//   //     throw new Error('No active document');
+//   //   }
 
-    var data = {
-      x0: v[0],
-      y0: h[0],
-      hStep: v[1] - v[0],
-      vStep: h[1] - h[0],
-      wd: v[2] - v[0],
-      ht: h[2] - h[0],
-    };
+//   //   // First create a selection object
+//   //   const doc = app.activeDocument;
+//   //   const selection = await doc.selection.selectAll();
+//   //   // Now you should be able to access the selection
+//   //   console.log('Selection created:', selection);
+//   //   console.log('Selection bounds:', app.activeDocument.selection?.bounds);
+//   // } catch (err) {
+//   //   console.error('Selection error:', err);
+//   // }
 
-    return data;
-  }
-}
+//   try {
+//     if (!app.activeDocument) {
+//       throw new Error('No active document');
+//     }
 
-function toggleLayers(activeDocument, index, showAll) {
-  // const layersRef = activeDocument.artLayers;
-  const layersRef = activeDocument.layers;
-  console.log('index', index);
-
-  if (showAll) {
-    // for (let i = 0; i < layersRef.length; i++) {
-    //   layersRef[i].visible = true;
-    // }
-    activeDocument.layers.forEach((layer) => {
-      layer.visible = true;
-    });
-    return;
-  }
-
-  // Hide all layers
-  // for (let i = 0; i < layersRef.length; i++) {
-  //   layersRef[i].visible = false;
-  // }
-  activeDocument.layers.forEach((layer) => {
-    layer.visible = false;
-  });
-
-  // // And then show specifed layers
-  // // var layersRef = activeDocument.artLayers;
-  // const currentLayerRef = layersRef[index];
-
-  // const prefix = currentLayerRef.name.substring(0, 5);
-  // const isPage = prefix === 'page-';
-  // if (!isPage) {
-  //   return false;
-  // }
-
-  // if (currentLayerRef !== null) {
-  //   currentLayerRef.visible = true;
-  // }
-
-  // const bgLayerRef = layersRef.getByName('background');
-  // if (bgLayerRef !== null) {
-  //   bgLayerRef.visible = true;
-  // }
-
-  return true;
-}
-
-function exportFile(docRef, docPath, num) {
-  var filename = docPath + '/frames/' + 'frame' + '-' + num + '.jpg';
-  console.log('filename', filename);
-  var saveFileJPEG = File(filename);
-
-  var options = new ExportOptionsSaveForWeb();
-  options.format = SaveDocumentType.JPEG;
-  options.optimized = false;
-  options.quality = 100;
-  // alert(Object.keys(ExportType));
-  // docRef.exportDocument(saveFileJPEG, ExportType.SAVEFORWEB, options);
-
-  // var fileExtension = 'jpg';
-  alert('docRef', typeof docRef);
-
-  docRef.bitsPerChannel = BitsPerChannelType.EIGHT;
-
-  // var saveFile = new File(exportInfo.destination + '/' + fileNameBody + fileExtension);
-
-  jpgSaveOptions = new JPEGSaveOptions();
-
-  // jpgSaveOptions.embedColorProfile = exportInfo.icc;
-  jpgSaveOptions.embedColorProfile = false;
-
-  // jpgSaveOptions.quality = exportInfo.jpegQuality;
-  jpgSaveOptions.quality = 12;
-
-  docRef.saveAs(saveFileJPEG, jpgSaveOptions, true, Extension.LOWERCASE);
-}
-
-function eyBroDoTheThing() {
-  return window.require('photoshop').core.executeAsModal(() => {
-    const app = require('photoshop').app;
-    var sourceDocRef = app.activeDocument;
-    var rows = 6;
-    var cols = 6;
-    var bounds = findBounds(app.activeDocument);
-
-    if (bounds.error) {
-      alert('Oh noes! Something went wrong…');
-      return;
-    }
-
-    var x0 = bounds.x0;
-    var y0 = bounds.y0;
-    var hStep = bounds.hStep;
-    var vStep = bounds.vStep;
-    var wd = bounds.wd;
-    var ht = bounds.ht;
-
-    var resolution = sourceDocRef.resolution;
-    var sec = Math.floor(Date.now() / 1000).toString();
-    var docName = 'tempFile-' + sec;
-    // var newDocRef = createDocument(app, wd, ht, resolution, docName);
-    const newDocRef = app.documents.add(wd, ht, resolution, docName);
-    // console.log(wd, ht, resolution, docName);
-    // console.log('newDocRef', newDocRef);
-
-    app.activeDocument = sourceDocRef;
-
-    const sourceDocPath = sourceDocRef.path;
-    // var j = 0;
-    let currentPage = 0;
-    const numLayers = sourceDocRef.layers.length;
-    // console.log('numLayers', numLayers);
-
-    //     for (let k = 0; k < numLayers; k++) {
-    //       console.log('k', k);
-    //       // Copy layer contents if the layer's name starts with 'page-'
-    //       const shouldCopyLayer = toggleLayers(k);
-    //       console.log('shouldCopyLayer', shouldCopyLayer);
-    //       if (shouldCopyLayer) {
-    //         let x, y;
-    //         for (let i = 0; i < rows; i++) {
-    //           y = y0 + i * vStep;
-    //           for (let j = 0; j < cols; j++) {
-    //             const frameNumber = currentPage * rows * cols + i * cols + j + 1;
-    //             x = x0 + j * hStep;
-    //             const selRegion = [
-    //               [x, y],
-    //               [x + wd, y],
-    //               [x + wd, y + ht],
-    //               [x, y + ht],
-    //               [x, y],
-    //             ];
-
-    //             sourceDocRef.selection.select(selRegion);
-    //             sourceDocRef.selection.copy(true);
-    //             app.activeDocument = newDocRef;
-    //             newDocRef.paste();
-
-    //             exportFile(newDocRef, sourceDocPath, frameNumber);
-
-    //             // Delete newly added layer since it's no longer needed
-    //             var newDocLayersRef = newDocRef.layers;
-    //             newDocLayersRef[0].remove();
-
-    //             app.activeDocument = sourceDocRef;
-    //           }
-    //         }
-    //         currentPage += 1;
-    //       }
-    //     }
-
-    //     // Turn on display of all layers
-    //     toggleLayers(app.activeDocument, 0, true);
-
-    //     // Close the temporary document
-    //     app.activeDocument = newDocRef;
-    //     newDocRef.close(SaveOptions.DONOTSAVECHANGES);
-    //   });
-    // }
-
-    // let shouldCopy = toggleLayers(0);
-    // console.log('shouldCopy', shouldCopy);
-    // shouldCopy = toggleLayers(1);
-    // console.log('shouldCopy', shouldCopy);
-    // shouldCopy = toggleLayers(2);
-    // console.log('shouldCopy', shouldCopy);
-
-    app.activeDocument.layers.forEach(async (layer, k) => {
-      // console.log('k', k);
-      // Copy layer contents if the layer's name starts with 'page-'
-      const shouldCopyLayer = toggleLayers(app.activeDocument, k);
-      // console.log('shouldCopyLayer', shouldCopyLayer);
-      if (shouldCopyLayer) {
-        // console.log('shouldCopyLayer', shouldCopyLayer);
-        let x, y;
-        for (let i = 0; i < rows; i++) {
-          y = y0 + i * vStep;
-          for (let j = 0; j < cols; j++) {
-            const frameNumber = currentPage * rows * cols + i * cols + j + 1;
-            x = x0 + j * hStep;
-            // const selRegion = [
-            //   [x, y],
-            //   [x + wd, y],
-            //   [x + wd, y + ht],
-            //   [x, y + ht],
-            //   [x, y],
-            // ];
-            console.log('x', x);
-
-            // sourceDocRef.selection.select(selRegion);
-            await sourceDocRef.selection.selectRectangle(
-              {top: x, left: y, bottom: y + ht, right: x + wd},
-              constants.SelectionType.REPLACE
-            );
-          
-
-            sourceDocRef.selection.copy(true);
-            // app.activeDocument = newDocRef;
-            newDocRef.paste();
-
-            // exportFile(newDocRef, sourceDocPath, frameNumber);
-
-            // // Delete newly added layer since it's no longer needed
-            // var newDocLayersRef = newDocRef.layers;
-            // newDocLayersRef[0].remove();
-
-            // app.activeDocument = sourceDocRef;
-          }
-        }
-        currentPage += 1;
-      }
-    });
-
-    // Turn on display of all layers
-    toggleLayers(app.activeDocument, 0, true);
-    console.log('--------');
-
-    // Close the temporary document
-    app.activeDocument = newDocRef;
-    newDocRef.close(SaveOptions.DONOTSAVECHANGES);
-  });
-}
-
-// function showLayerNames() {
-//   const app = require('photoshop').app;
-//   const allLayers = app.activeDocument.layers;
-//   const allLayerNames = allLayers.map(
-//     (layer) => `${layer.name} (${layer.opacity} %)`
+//     // First create a selection object
+//     const selection = await app.activeDocument.selection.selectRectangle(
+//       {top: 50, left: 50, bottom: 400, right: 600},
+//       constants.SelectionType.REPLACE
 //   );
-//   const sortedNames = allLayerNames.sort((a, b) =>
-//     a < b ? -1 : a > b ? 1 : 0
-//   );
-//   document.getElementById('layers').innerHTML = `
-//       <ul>${sortedNames.map((name) => `<li>${name}</li>`).join('')}</ul>`;
+//   ;
+
+//     // Now you should be able to access the selection
+//     console.log('Selection created:', selection);
+//     console.log('Selection bounds:', app.activeDocument.selection?.bounds);
+//   } catch (err) {
+//     console.error('Selection error:', err);
+//   }
+
+//   // console.log(doc.selection.bounds); // {{top: 50, left: 50, bottom: 100, right: 100}
+//   // console.log(doc.selection.solid); // true
 // }
 
-// document
-//   .getElementById('btnPopulate')
-//   .addEventListener('click', showLayerNames);
+async function selectArea({ top, left, bottom, right }) {
+  const { app, constants } = window.require('photoshop');
 
-document.getElementById('btnRename').addEventListener('click', eyBroDoTheThing);
+  try {
+    if (!app.activeDocument) {
+      throw new Error('No active document');
+    }
+    // Create a selection object
+    const selection = await app.activeDocument.selection.selectRectangle(
+      { top, left, bottom, right },
+      constants.SelectionType.REPLACE
+    );
+
+    // Now you should be able to access the selection
+    console.log(
+      'Created selection; Bounds are:',
+      app.activeDocument.selection?.bounds
+    );
+
+    return selection;
+  } catch (err) {
+    console.error('Selection error:', err);
+  }
+}
+
+// async function copySelection1() {
+//   const { app, constants, action } = window.require('photoshop');
+
+//   try {
+//     if (!app.activeDocument) {
+//       throw new Error('No active document');
+//     }
+
+//     // Copy the selection
+//     await action.batchPlay(
+//       [
+//         {
+//           _obj: 'copy',
+//           _isCommand: true,
+//           _options: {
+//             dialogOptions: 'dontDisplay',
+//           },
+//         },
+//       ],
+//       {
+//         modalBehavior: 'execute',
+//       }
+//     );
+
+//     console.log('Area copied to clipboard');
+//   } catch (err) {
+//     console.error('Copy operation error:', err);
+//   }
+// }
+
+async function copySelection({ top, left, bottom, right }) {
+  const { app, constants } = window.require('photoshop');
+
+  if (!app.activeDocument) {
+    throw new Error('OH NO!. No active document');
+  }
+
+  let selection;
+  // Create a selection object
+  try {
+    await app.activeDocument.selection.selectRectangle(
+      { top, left, bottom, right },
+      constants.SelectionType.REPLACE
+    );
+    console.log('Area selected');
+  } catch (err) {
+    console.error('Select operation error:', err);
+  }
+
+  try {
+    await require('photoshop').action.batchPlay(
+      [
+        {
+          // _obj: 'copyToLayer',
+          _obj: 'copy',
+          _isCommand: true,
+        },
+      ],
+      {
+        modalBehavior: 'execute',
+      }
+    );
+    console.log('Area copied to clipboard');
+  } catch (err) {
+    console.error('Copy operation error:', err);
+  }
+
+  try {
+    await require('photoshop').action.batchPlay(
+      [
+        {
+          _obj: 'paste',
+          _isCommand: true,
+          as: { _class: 'document' },
+        },
+      ],
+      {
+        modalBehavior: 'execute',
+      }
+    );
+    console.log('Area pasted to new document');
+  } catch (err) {
+    console.error('Paste operation error:', err);
+  }
+
+  try {
+    // "Default Photoshop Size" 7x5 inches at 300ppi
+    // console.log('selection', app.activeDocument.selection.width);
+    let newDoc2 = await app.documents.add({
+      width: right - left,
+      height: bottom - top,
+      resolution: app.activeDocument.resolution,
+      mode: 'RGBColorMode',
+      fill: 'transparent',
+      name: 'wassup',
+    });
+  } catch (err) {
+    console.error('Select operation error:', err);
+  }
+
+  // --------
+  // console.log('action.batchPlay', action.batchPlay);
+
+  // layerProperties = {
+  //   _obj: 'multiGet',
+  //   _target: {
+  //     _ref: [
+  //       { _ref: 'layer', _enum: 'ordinal' },
+  //       { _ref: 'document', _enum: 'ordinal' },
+  //     ],
+  //   },
+  //   extendedReference: [['name', 'layerID', 'opacity']],
+  //   options: { failOnMissingProperty: false, failOnMissingElement: false },
+  // };
+  // result = await require('photoshop').action.batchPlay([layerProperties], {});
+  // console.log('result', result);
+
+  // if (!selection) {
+  //   throw new Error('OH NO! No selection');
+  // }
+  // // Copy the current selection
+  // try {
+  //   console.log('doin it');
+  //   await action.batchPlay(
+  //     [
+  //       {
+  //         _obj: 'copy',
+  //         _target: selection,
+  //         // _isCommand: true,
+  //         _options: {
+  //           dialogOptions: 'dontDisplay',
+  //         },
+  //       },
+  //     ],
+  //     {
+  //       modalBehavior: 'fail',
+  //     }
+  //   );
+  //   console.log('just did it');
+
+  //   console.log('Selection copied to clipboard');
+  // } catch (err) {
+  //   console.error('Copy failed:', err);
+  // }
+  // try {
+  //   await batchPlay(
+  //     [
+  //       {
+  //         _obj: 'copyEvent',
+  //         // _target: selection,
+  //         _options: {
+  //           dialogOptions: 'dontDisplay',
+  //         },
+  //       },
+  //     ],
+  //     {
+  //       synchronousExecution: false,
+  //       modalBehavior: 'execute',
+  //     }
+  //   );
+
+  //   console.log('Area copied to clipboard');
+  // } catch (err) {
+  //   console.error('Copy operation error:', err);
+  // }
+}
+
+const doEverything = async () => {
+  // await selectArea({ top: 100, left: 200, bottom: 800, right: 1000 });
+  await copySelection({ top: 100, left: 200, bottom: 800, right: 400 });
+};
+
+document.getElementById('btnExport').addEventListener('click', () => {
+  require('photoshop').core.executeAsModal(doEverything, {
+    commandName: 'Generic name of the command',
+  });
+});
+
+// let result = require("photoshop").core.executeAsModal(hideActiveLayer, {"commandName": "Hide Layer"});
