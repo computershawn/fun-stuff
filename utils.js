@@ -23,7 +23,7 @@ async function pasteSelection() {
 
 // Create a selection in the active document
 async function createSelection({ top, left, bottom, right }) {
-  const { app, constants } = window.require('photoshop');
+  const { app, constants } = require('photoshop');
 
   // Create a selection object
   try {
@@ -62,9 +62,9 @@ async function copySelection() {
 
 // Create a new document with the specified width and height
 async function newDoc({ width, height }) {
-  const { app } = window.require('photoshop');
+  const { app } = require('photoshop');
   try {
-    const newDoc = await app.documents.add({
+    await app.documents.add({
       width,
       height,
       resolution: app.activeDocument.resolution,
@@ -76,6 +76,9 @@ async function newDoc({ width, height }) {
   }
 }
 
+// Generate indices for each frame in the page. This version of the function
+// allows columns to span multiple pages. Variable 'cols' should always be
+// a multiple of pageCols. For example, if cols is 12, pageCols should be 3.
 function generateFrameNums ({ pages = 1, pageCols = 1, pageRows = 1, cols = 1}) {
   const perPage = pageCols * pageRows;
   const temp = [];
@@ -97,6 +100,7 @@ function generateFrameNums ({ pages = 1, pageCols = 1, pageRows = 1, cols = 1}) 
   return temp;
 };
 
+// Calculate top/bottom/left/right bounds for each frame
 function getBounds({ xOff, yOff, xGap, yGap, wd, ht, pageRows, pageCols }) {
   const temp = [];
   for(let i = 0; i < pageRows; i++) {
@@ -113,24 +117,55 @@ function getBounds({ xOff, yOff, xGap, yGap, wd, ht, pageRows, pageCols }) {
   return temp; 
 }
 
-const pages = 1; // 3;
-const pageCols = 6; // 3;
-const pageRows = 6; // 3;
-const cols = 6; // 6;
+// Create a save params object for exporting multiple files using batchPlay
+const getParams = (saveFile, documentID) => ({
+  commands: [
+    {
+      _obj: 'save',
+      _isCommand: true,
+      as: {
+        _obj: 'JPEGFormat',
+        quality: 12, // Max quality
+        // embedColorProfile: true,
+        formatOptions: {
+          _obj: 'JPEGFormatOptions',
+          quality: 12,
+          // scans: 3,
+          // matte: {_enum: "matteType", _value: "none"}
+        },
+      },
+      in: { _path: saveFile },
+      saveStage: { _enum: 'saveStageType', _value: 'saveBegin' },
+      documentID,
+      // copy: true, // Save a copy
+      lowerCase: true,
+      saveAs: true,
+    },
+  ],
+  options: {
+    modalBehavior: 'execute',
+    continueSaveDialog: false, // Prevents dialog from showing
+  },
+});
 
-const xOff = 90;
-const yOff = 240;
-const xGap = 11;
-const yGap = 310;
-const wd = 515;
-const ht = 515;
+// const pages = 1; // 3;
+// const pageCols = 6; // 3;
+// const pageRows = 6; // 3;
+// const cols = 6; // 6;
 
-// xOff: 90, yOff: 240, xGap: 11, yGap: 310, wd: 515, ht: 515, rows: 2, cols: 6
+// const xOff = 90;
+// const yOff = 240;
+// const xGap = 11;
+// const yGap = 310;
+// const wd = 515;
+// const ht = 515;
 
-const bounds = getBounds({ xOff, yOff, xGap, yGap, wd, ht, pageRows, pageCols });
-console.log(bounds);
-const frameNums = generateFrameNums({ pages, pageCols, pageRows, cols });
-console.log(frameNums);
+// // xOff: 90, yOff: 240, xGap: 11, yGap: 310, wd: 515, ht: 515, rows: 2, cols: 6
+
+// const bounds = getBounds({ xOff, yOff, xGap, yGap, wd, ht, pageRows, pageCols });
+// console.log(bounds);
+// const frameNums = generateFrameNums({ pages, pageCols, pageRows, cols });
+// console.log(frameNums);
 
 
 
