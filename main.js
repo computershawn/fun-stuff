@@ -250,3 +250,14 @@ document.getElementById('btnExport').addEventListener('click', () => {
     commandName: 'Generic name of the command',
   });
 });
+
+document.getElementById('btnPrev').addEventListener('click', () => {
+  const elem = document.getElementById('pageNum');
+  const temp = Math.max(1, parseInt(elem.value) - 1);
+  elem.value = `${temp}`;
+});
+
+document.getElementById('btnNext').addEventListener('click', () => {
+  const elem = document.getElementById('pageNum');
+  elem.value = `${parseInt(elem.value) + 1}`;
+});

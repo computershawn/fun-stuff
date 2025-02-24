@@ -1,21 +1,83 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <script src="main.js"></script>
-  </head>
-  <style>
-    body {
-      color: white;
-      padding: 0 16px;
-    }
-  </style>
-  <body>
-    <sp-heading>Layers</sp-heading>
-    <!-- <sp-heading size="S">Rename layers</sp-heading>
-    <sp-body size="S"> Rename layers to contain their opacity. </sp-body>
-    <sp-button id="btnRename">Rename Layers</sp-button> -->
-    <sp-heading size="S">hello</sp-heading>
-    <sp-body size="S">this is a description bro</sp-body>
-    <sp-button id="btnExport" variant="secondary">Do the damn thing</sp-button>
-  </body>
+
+<head>
+  <script src="main.js"></script>
+</head>
+<style>
+  body {
+    color: white;
+    padding: 0 16px;
+  }
+
+  .fun {
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  #btnExport {
+    margin-top: 1rem;
+  }
+</style>
+
+<body>
+  <sp-heading>Fun Stuff</sp-heading>
+  <!-- <sp-heading size="S">hello</sp-heading> -->
+  <sp-body size="S">Export a grid of animation frames to images</sp-body>
+
+  <section class="fun">
+    <sp-textfield width="72" id="pageRows" type="number" value="1">
+      <sp-label isrequired="true" slot="label">Rows</sp-label>
+    </sp-textfield>
+    <sp-textfield width="72" id="pageCols" type="number" value="1">
+      <sp-label isrequired="true" slot="label">Columns</sp-label>
+    </sp-textfield>
+    <sp-textfield width="72" id="expanded" type="number" value="1">
+      <sp-label isrequired="true" slot="label">Expanded</sp-label>
+    </sp-textfield>
+  </section>
+
+  <section class="fun">
+    <sp-textfield width="72" id="xOffset" type="number" value="1">
+      <sp-label isrequired="true" slot="label">X Offset</sp-label>
+    </sp-textfield>
+    <sp-textfield width="72" id="width" type="number" value="1">
+      <sp-label isrequired="true" slot="label">Width</sp-label>
+    </sp-textfield>
+    <sp-textfield width="72" id="xGap" type="number" value="1">
+      <sp-label isrequired="true" slot="label">Horiz Gap</sp-label>
+    </sp-textfield>
+  </section>
+
+  <section class="fun">
+    <sp-textfield width="72" id="yOffset" type="number" value="1">
+      <sp-label isrequired="true" slot="label">Y Offset</sp-label>
+    </sp-textfield>
+    <sp-textfield width="72" id="height" type="number" value="1">
+      <sp-label isrequired="true" slot="label">Height</sp-label>
+    </sp-textfield>
+    <sp-textfield width="72" id="yGap" type="number" value="1">
+      <sp-label isrequired="true" slot="label">Vert Gap</sp-label>
+    </sp-textfield>
+  </section>
+
+  <section class="fun">
+    <sp-textfield width="72" id="pages" type="number" value="1">
+      <sp-label isrequired="true" slot="label">Pages</sp-label>
+    </sp-textfield>
+  </section>
+
+  <section class="fun">
+    <sp-button id="btnPrev" variant="secondary">Prev</sp-button>
+    <sp-button id="btnNext" variant="secondary">Next</sp-button>
+    <sp-textfield id="pageNum" width="72" id="page" type="number" value="1">
+      <sp-label isrequired="true" slot="label">Current</sp-label>
+    </sp-textfield>
+  </section>
+
+  <section>
+    <sp-button id="btnExport" width="100%">Export Frames</sp-button>
+  </section>
+</body>
+
 </html>
