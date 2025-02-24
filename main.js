@@ -1,5 +1,3 @@
-// const { pasteSelection } = require('./utils');
-
 const doEverything = async () => {
   if (!window.require('photoshop').app.activeDocument) {
     throw new Error('No active document!');
@@ -22,4 +20,3 @@ document.getElementById('btnExport').addEventListener('click', () => {
   });
 });
 
-// let result = require("photoshop").core.executeAsModal(hideActiveLayer, {"commandName": "Hide Layer"});
