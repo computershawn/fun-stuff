@@ -182,17 +182,29 @@ const doEverything = async () => {
   const { localFileSystem: fileSys } = require('uxp').storage;
   const folderRef = await fileSys.getFolder();
 
-  const pages = 1; // 3;
-  const pageCols = 6; // 3;
-  const pageRows = 6; // 3;
+  // const pages = 1; // 3;
+  // const pageCols = 6; // 3;
+  // const pageRows = 6; // 3;
+  // const cols = 6; // 6;
+
+  // const xOff = 90;
+  // const yOff = 240;
+  // const xGap = 11;
+  // const yGap = 310;
+  // const wd = 515;
+  // const ht = 515;
+
+  const pages = 20; // 3;
+  const pageCols = 3; // 3;
+  const pageRows = 3; // 3;
   const cols = 6; // 6;
 
-  const xOff = 90;
-  const yOff = 240;
-  const xGap = 11;
-  const yGap = 310;
-  const wd = 515;
-  const ht = 515;
+  const xOff = 9;
+  const yOff = 106;
+  const xGap = 42;
+  const yGap = 80;
+  const wd = 1700;
+  const ht = 2210;
 
   // xOff: 90, yOff: 240, xGap: 11, yGap: 310, wd: 515, ht: 515, rows: 2, cols: 6
 
@@ -221,7 +233,7 @@ const doEverything = async () => {
       await newDoc({ width: right - left, height: bottom - top });
       await pasteSelection();
 
-      const newFile = await folderRef.createFile(`testing-c${i}.jpg`);
+      const newFile = await folderRef.createFile(`testing-c${indices[i]}.jpg`);
       const saveFile = await fileSys.createSessionToken(newFile);
       await saveThing(saveFile);
     }
@@ -245,12 +257,6 @@ const saveThing = async (saveFileRef) => {
   }
 };
 
-document.getElementById('btnExport').addEventListener('click', () => {
-  require('photoshop').core.executeAsModal(doEverything, {
-    commandName: 'Generic name of the command',
-  });
-});
-
 document.getElementById('btnPrev').addEventListener('click', () => {
   const elem = document.getElementById('pageNum');
   const temp = Math.max(1, parseInt(elem.value) - 1);
@@ -260,4 +266,63 @@ document.getElementById('btnPrev').addEventListener('click', () => {
 document.getElementById('btnNext').addEventListener('click', () => {
   const elem = document.getElementById('pageNum');
   elem.value = `${parseInt(elem.value) + 1}`;
+});
+
+// document.getElementById('btnExport').addEventListener('click', () => {
+//   require('photoshop').core.executeAsModal(doEverything, {
+//     commandName: 'Generic name of the command',
+//   });
+// });
+
+function getValues() {
+  const varbs = [
+    'pageRows',
+    'pageCols',
+    'expanded',
+    'xOffset',
+    'width',
+    'xGap',
+    'yOffset',
+    'height',
+    'yGap',
+    'pages',
+    'pageNum',
+  ];
+  const temp = varbs.reduce((prev, curr) => {
+    const val = document.getElementById(curr).value;
+    return {
+      ...prev,
+      [curr]: parseInt(val),
+    };
+  }, {});
+
+  return temp;
+}
+
+document.getElementById('btnExport').addEventListener('click', () => {
+  const values = getValues();
+
+  const pageRows = 3; // 3;
+  const pageCols = 3; // 3;
+  const cols = 6; // 6;
+  const xOff = 9;
+  const wd = 1700;
+  const xGap = 42;
+  const yOff = 106;
+  const ht = 2210;
+  const yGap = 80;
+  const pages = 20; // 3;
+  const pageNum = 1;
+
+  console.log(values.pageRows === pageRows);
+  console.log(values.pageCols === pageCols);
+  console.log(values.expanded === cols);
+  console.log(values.xOffset === xOff);
+  console.log(values.width === wd);
+  console.log(values.xGap === xGap);
+  console.log(values.yOffset === yOff);
+  console.log(values.height === ht);
+  console.log(values.yGap === yGap);
+  console.log(values.pages === pages);
+  console.log(values.pageNum === pageNum);
 });
