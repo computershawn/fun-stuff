@@ -271,9 +271,7 @@ const doEverything = async () => {
       await newDoc({ width: right - left, height: bottom - top });
       await pasteSelection();
 
-      const newFile = await folderRef.createFile(
-        `frames-${indices[i]}.jpg`
-      );
+      const newFile = await folderRef.createFile(`frames-${indices[i]}.jpg`);
       const saveFile = await fileSys.createSessionToken(newFile);
       await saveThing(saveFile);
     }
@@ -361,8 +359,66 @@ function getValues() {
 //   console.log(values.pageNum === pageNum);
 // });
 
+function getPageLayerNames() {
+  const { app } = require('photoshop');
+  var { layers } = app.activeDocument;
+
+  const temp = layers.reduce((acc, curr) => {
+    if (/^page-\d+$/.test(curr.name)) {
+      acc.push(curr.name);
+    }
+
+    return acc;
+  }, []);
+
+  return temp.sort();
+}
+
+function toggleLayers(layerName, showAll) {
+  const { app } = require('photoshop');
+  var { layers } = app.activeDocument;
+
+  if (showAll) {
+    for (let i = 0; i < layers.length; i++) {
+      layers[i].visible = true;
+    }
+    return;
+  }
+
+  // Hide all layers
+  for (let i = 0; i < layers.length; i++) {
+    layers[i].visible = false;
+  }
+
+  const specifiedLayer = layers.getByName(layerName);
+  if (specifiedLayer !== null) {
+    specifiedLayer.visible = true;
+  }
+
+  const bgLayerRef = layers.getByName('base');
+  if (bgLayerRef !== null) {
+    bgLayerRef.visible = true;
+  }
+}
+
 document.getElementById('btnExport').addEventListener('click', () => {
-  require('photoshop').core.executeAsModal(doEverything, {
-    commandName: 'Generic name of the command',
-  });
+  require('photoshop').core.executeAsModal(
+    () => {
+      const pageLayerNames = getPageLayerNames();
+      pageLayerNames.forEach((layerName) => {
+        toggleLayers(layerName);
+      });
+      toggleLayers('', true);
+    },
+    {
+      commandName: 'Generic name of the command',
+    }
+  );
 });
+
+// Batch export individual frames to JPG
+// document.getElementById('btnExport').addEventListener('click', () => {
+//   require('photoshop').core.executeAsModal(doEverything, {
+//     commandName: 'Generic name of the command',
+//   });
+// });
