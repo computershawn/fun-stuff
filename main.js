@@ -1,3 +1,7 @@
+const padX = 140;
+const padY = 140;
+const prefix = 'b';
+
 // Paste copied pixels into document
 async function pasteSelection() {
   const batchPlay = require('photoshop').action.batchPlay;
@@ -108,10 +112,10 @@ function getBounds({ xOff, yOff, xGap, yGap, wd, ht, pageRows, pageCols }) {
   const temp = [];
   for (let i = 0; i < pageRows; i++) {
     for (let j = 0; j < pageCols; j++) {
-      const top = yOff + i * (ht + yGap);
-      const bottom = top + ht;
-      const left = xOff + j * (wd + xGap);
-      const right = left + wd;
+      const top = yOff + i * (ht + yGap) - padY;
+      const bottom = top + ht + 2 * padY;
+      const left = xOff + j * (wd + xGap) - padX;
+      const right = left + wd + 2 * padX;
 
       temp.push({ top, bottom, left, right });
     }
@@ -258,7 +262,6 @@ const doEverything = async () => {
 
   const indices = frameNums[pageNum - 1];
   // const timestamp = Date.now();
-  const prefix = 'a';
 
   try {
     for (let i = 0; i < indices.length; i++) {
