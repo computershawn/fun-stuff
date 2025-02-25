@@ -1,6 +1,5 @@
-const padX = 140;
-const padY = 140;
-const prefix = 'b';
+const padX = 120;
+const padY = 120;
 
 // Paste copied pixels into document
 async function pasteSelection() {
@@ -49,7 +48,7 @@ async function copySelection() {
     await batchPlay(
       [
         {
-          _obj: 'copyEvent',
+          _obj: 'copyMerged',
         },
       ],
       {
@@ -273,7 +272,7 @@ const doEverything = async () => {
       await pasteSelection();
 
       const newFile = await folderRef.createFile(
-        `frames-${prefix}-${indices[i]}.jpg`
+        `frames-${indices[i]}.jpg`
       );
       const saveFile = await fileSys.createSessionToken(newFile);
       await saveThing(saveFile);
