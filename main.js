@@ -39,15 +39,13 @@ async function createSelection({ top, left, bottom, right }) {
 
 // Copy pixels of the current selection
 async function copySelection() {
-  const batchPlay = require('photoshop').action.batchPlay;
+  const { batchPlay } = require('photoshop').action;
 
   try {
-    await require('photoshop').action.batchPlay(
+    await batchPlay(
       [
         {
           _obj: 'copyEvent',
-          // _isCommand: true,
-          // as: { _class: 'document' },
         },
       ],
       {
@@ -194,17 +192,54 @@ const doEverything = async () => {
   // const wd = 515;
   // const ht = 515;
 
-  const pages = 20; // 3;
-  const pageCols = 3; // 3;
-  const pageRows = 3; // 3;
-  const cols = 6; // 6;
+  // const pages = 20; // 3;
+  // const pageCols = 3; // 3;
+  // const pageRows = 3; // 3;
+  // const cols = 6; // 6;
+  // const xOff = 9;
+  // const yOff = 106;
+  // const xGap = 42;
+  // const yGap = 80;
+  // const wd = 1700;
+  // const ht = 2210;
 
-  const xOff = 9;
-  const yOff = 106;
-  const xGap = 42;
-  const yGap = 80;
-  const wd = 1700;
-  const ht = 2210;
+  const {
+    pageRows,
+    pageCols,
+    expanded: cols,
+    xOffset: xOff,
+    width: wd,
+    xGap,
+    yOffset: yOff,
+    height: ht,
+    yGap,
+    pages,
+    pageNum,
+  } = getValues();
+
+  // const pageRows = 3; // 3;
+  // const pageCols = 3; // 3;
+  // const cols = 6; // 6;
+  // const xOff = 9;
+  // const wd = 1700;
+  // const xGap = 42;
+  // const yOff = 106;
+  // const ht = 2210;
+  // const yGap = 80;
+  // const pages = 20; // 3;
+  // const pageNum = 1;
+
+  // console.log(values.pageRows === pageRows);
+  // console.log(values.pageCols === pageCols);
+  // console.log(values.expanded === cols);
+  // console.log(values.xOffset === xOff);
+  // console.log(values.width === wd);
+  // console.log(values.xGap === xGap);
+  // console.log(values.yOffset === yOff);
+  // console.log(values.height === ht);
+  // console.log(values.yGap === yGap);
+  // console.log(values.pages === pages);
+  // console.log(values.pageNum === pageNum);
 
   // xOff: 90, yOff: 240, xGap: 11, yGap: 310, wd: 515, ht: 515, rows: 2, cols: 6
 
@@ -221,8 +256,9 @@ const doEverything = async () => {
 
   const frameNums = generateFrameNums({ pages, pageCols, pageRows, cols });
 
-  const pageNum = 0;
-  const indices = frameNums[pageNum];
+  const indices = frameNums[pageNum - 1];
+  // const timestamp = Date.now();
+  const prefix = 'a';
 
   try {
     for (let i = 0; i < indices.length; i++) {
@@ -233,7 +269,9 @@ const doEverything = async () => {
       await newDoc({ width: right - left, height: bottom - top });
       await pasteSelection();
 
-      const newFile = await folderRef.createFile(`testing-c${indices[i]}.jpg`);
+      const newFile = await folderRef.createFile(
+        `frames-${prefix}-${indices[i]}.jpg`
+      );
       const saveFile = await fileSys.createSessionToken(newFile);
       await saveThing(saveFile);
     }
@@ -268,12 +306,6 @@ document.getElementById('btnNext').addEventListener('click', () => {
   elem.value = `${parseInt(elem.value) + 1}`;
 });
 
-// document.getElementById('btnExport').addEventListener('click', () => {
-//   require('photoshop').core.executeAsModal(doEverything, {
-//     commandName: 'Generic name of the command',
-//   });
-// });
-
 function getValues() {
   const varbs = [
     'pageRows',
@@ -299,30 +331,36 @@ function getValues() {
   return temp;
 }
 
+// document.getElementById('btnExport').addEventListener('click', () => {
+//   const values = getValues();
+
+//   const pageRows = 3; // 3;
+//   const pageCols = 3; // 3;
+//   const cols = 6; // 6;
+//   const xOff = 9;
+//   const wd = 1700;
+//   const xGap = 42;
+//   const yOff = 106;
+//   const ht = 2210;
+//   const yGap = 80;
+//   const pages = 20; // 3;
+//   const pageNum = 1;
+
+//   console.log(values.pageRows === pageRows);
+//   console.log(values.pageCols === pageCols);
+//   console.log(values.expanded === cols);
+//   console.log(values.xOffset === xOff);
+//   console.log(values.width === wd);
+//   console.log(values.xGap === xGap);
+//   console.log(values.yOffset === yOff);
+//   console.log(values.height === ht);
+//   console.log(values.yGap === yGap);
+//   console.log(values.pages === pages);
+//   console.log(values.pageNum === pageNum);
+// });
+
 document.getElementById('btnExport').addEventListener('click', () => {
-  const values = getValues();
-
-  const pageRows = 3; // 3;
-  const pageCols = 3; // 3;
-  const cols = 6; // 6;
-  const xOff = 9;
-  const wd = 1700;
-  const xGap = 42;
-  const yOff = 106;
-  const ht = 2210;
-  const yGap = 80;
-  const pages = 20; // 3;
-  const pageNum = 1;
-
-  console.log(values.pageRows === pageRows);
-  console.log(values.pageCols === pageCols);
-  console.log(values.expanded === cols);
-  console.log(values.xOffset === xOff);
-  console.log(values.width === wd);
-  console.log(values.xGap === xGap);
-  console.log(values.yOffset === yOff);
-  console.log(values.height === ht);
-  console.log(values.yGap === yGap);
-  console.log(values.pages === pages);
-  console.log(values.pageNum === pageNum);
+  require('photoshop').core.executeAsModal(doEverything, {
+    commandName: 'Generic name of the command',
+  });
 });
