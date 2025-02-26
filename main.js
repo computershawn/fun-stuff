@@ -5,17 +5,35 @@ const prevBtn = document.getElementById('prev');
 const nextBtn = document.getElementById('next');
 
 prevBtn.addEventListener('click', () => {
-  const field = document.getElementById('currentPage');
-  const page = parseInt(field.value);  
-  const updated = Math.max(1, page - 1);
-  field.value = `${updated}`;
+  require('photoshop').core.executeAsModal(
+    () => {
+      const field = document.getElementById('currentPage');
+      const page = parseInt(field.value);
+      const updated = Math.max(1, page - 1);
+      field.value = `${updated}`;
+
+      toggleLayers(`page-${updated}`);
+    },
+    {
+      commandName: 'Select previous page layer',
+    }
+  );
 });
 
 nextBtn.addEventListener('click', () => {
-  const field = document.getElementById('currentPage');
-  const page = parseInt(field.value);  
-  const updated = page + 1;
-  field.value = `${updated}`;
+  require('photoshop').core.executeAsModal(
+    () => {
+      const field = document.getElementById('currentPage');
+      const page = parseInt(field.value);
+      const updated = page + 1;
+      field.value = `${updated}`;
+
+      toggleLayers(`page-${updated}`);
+    },
+    {
+      commandName: 'Select previous page layer',
+    }
+  );
 });
 
 // Paste copied pixels into document
@@ -160,7 +178,7 @@ const getParams = (saveFile, documentID) => ({
   ],
   options: {
     modalBehavior: 'execute',
-    continueSaveDialog: false, // Prevents dialog from showing
+    continueSaveDialog: false,
   },
 });
 
@@ -201,73 +219,35 @@ const doEverything = async () => {
   });
 
   const frameNums = generateFrameNums({ pages, pageCols, pageRows, cols });
+  const field = document.getElementById('currentPage');
+  const pageNum = parseInt(field.value);
+  const indices = frameNums[pageNum - 1];
 
-  const pageLayerNames = getPageLayerNames();
+  try {
+    for (let i = 0; i < indices.length; i++) {
+      const { top, left, bottom, right } = bounds[i];
 
-  // THIS IS GETTING TOO COMPLICATED
-  // TRY REVERTING TO MANUAL PAGE SELECTION INSTEAD
-  // OF HAVING THE PROGRAM AUTOMATICALLY TRAVERSE PAGES
-  // pageLayerNames.forEach(async (layerName) => {
-  //   toggleLayers(layerName);
+      await require('photoshop').core.executeAsModal(() =>
+        createSelection({ top, left, bottom, right })
+      );
+      await require('photoshop').core.executeAsModal(copySelection);
+      await require('photoshop').core.executeAsModal(() =>
+        newDoc({ width: right - left, height: bottom - top })
+      );
+      await require('photoshop').core.executeAsModal(pasteSelection);
 
-  //   const pageNum = parseInt(layerName.split('-')[1]);
-  //   // console.log('frameNums', frameNums);
-  //   const indices = frameNums[pageNum - 1];
-  //   console.log('indices', indices);
+      const fileRef = await folderRef.createFile(`frames-${indices[i]}.jpg`);
+      const saveFile = await fileSys.createSessionToken(fileRef);
+      await require('photoshop').core.executeAsModal(() =>
+        exportFile(saveFile)
+      );
+    }
+  } catch (err) {
+    console.error('Error:', err);
+  }
 
-  //   // console.log('indices', indices);
-  //   console.log('show layer', layerName);
-
-  //   try {
-  //     for (let i = 0; i < indices.length; i++) {
-  //       const { top, left, bottom, right } = bounds[i];
-
-  //       // await require('photoshop').core.executeAsModal(() =>
-  //       //   createSelection({ top, left, bottom, right })
-  //       // );
-  //       // await require('photoshop').core.executeAsModal(copySelection);
-  //       // await require('photoshop').core.executeAsModal(() =>
-  //       //   newDoc({ width: right - left, height: bottom - top })
-  //       // );
-  //       // await require('photoshop').core.executeAsModal(pasteSelection);
-
-  //       console.log('export file', `frames-${indices[i]}.jpg`);
-
-  //       // const fileRef = await folderRef.createFile(`frames-${indices[i]}.jpg`);
-  //       // const saveFile = await fileSys.createSessionToken(fileRef);
-  //       // await require('photoshop').core.executeAsModal(() =>
-  //       //   exportFile(saveFile)
-  //       // );
-  //     }
-  //   } catch (err) {
-  //     console.error('Error:', err);
-  //   }
-  // });
-
-  // toggleLayers('', true);
-
-  // toggleLayers('page-3');
-  // console.log('name', pageLayerNames);
-
-  // const pageNum = 1;
-  // const indices = frameNums[pageNum - 1];
-
-  // try {
-  //   for (let i = 0; i < indices.length; i++) {
-  //     const { top, left, bottom, right } = bounds[i];
-
-  //     await createSelection({ top, left, bottom, right });
-  //     await copySelection();
-  //     await newDoc({ width: right - left, height: bottom - top });
-  //     await pasteSelection();
-
-  //     const newFile = await folderRef.createFile(`frames-${indices[i]}.jpg`);
-  //     const saveFile = await fileSys.createSessionToken(newFile);
-  //     await exportFile(saveFile);
-  //   }
-  // } catch (err) {
-  //   console.error('Error:', err);
-  // }
+  // Show all layers after export
+  toggleLayers('', true);
 };
 
 const exportFile = async (saveFileRef) => {
@@ -333,35 +313,21 @@ function toggleLayers(layerName, showAll) {
     return;
   }
 
+  if (layers.getByName(layerName) === null) {
+    return;
+  }
+
   // Hide or show layers
   for (let i = 0; i < layers.length; i++) {
     if (layers[i].name === layerName) {
       layers[i].visible = true;
-      // console.log(layerName, 'show');
-    } else if (layers[i].name === 'base') {
+    } else if (layers[i].name === 'base-layer') {
       layers[i].visible = true;
-      // console.log('base', 'show');
     } else {
       layers[i].visible = false;
-      // console.log(layers[i].name, 'hide');
     }
   }
 }
-
-// document.getElementById('btnExport').addEventListener('click', () => {
-//   require('photoshop').core.executeAsModal(
-//     () => {
-//       const pageLayerNames = getPageLayerNames();
-//       pageLayerNames.forEach((layerName) => {
-//         toggleLayers(layerName);
-//       });
-//       toggleLayers('', true);
-//     },
-//     {
-//       commandName: 'Generic name of the command',
-//     }
-//   );
-// });
 
 // Batch export individual frames to JPEGs
 document.getElementById('btnExport').addEventListener('click', () => {
