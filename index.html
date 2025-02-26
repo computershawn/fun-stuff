@@ -15,8 +15,29 @@
     margin-bottom: 0.25rem;
   }
 
+  .page-picker {
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: flex-end;
+  }
+
   #btnExport {
     margin-top: 1rem;
+  }
+
+  .circle-btn {
+    height: 32px;
+    width: 32px;
+    min-width: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 0.5rem;
+  }
+
+  .btn-container {
+    display: flex;
   }
 </style>
 
@@ -59,6 +80,16 @@
     <sp-textfield width="72" id="yGap" type="number" value="291">
       <sp-label isrequired="true" slot="label">Vert Gap</sp-label>
     </sp-textfield>
+  </section>
+
+  <section class="fun page-picker">
+    <sp-textfield width="50%" id="currentPage" type="number" value="1">
+      <sp-label isrequired="true" slot="label">Page</sp-label>
+    </sp-textfield>
+    <div class="btn-container">
+      <sp-button id="prev" variant="primary" class="circle-btn">-</sp-button>
+      <sp-button id="next" variant="primary" class="circle-btn">+</sp-button>
+    </div>
   </section>
 
   <section class="fun">

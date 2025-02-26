@@ -1,6 +1,23 @@
 const padX = 120;
 const padY = 120;
 
+const prevBtn = document.getElementById('prev');
+const nextBtn = document.getElementById('next');
+
+prevBtn.addEventListener('click', () => {
+  const field = document.getElementById('currentPage');
+  const page = parseInt(field.value);  
+  const updated = Math.max(1, page - 1);
+  field.value = `${updated}`;
+});
+
+nextBtn.addEventListener('click', () => {
+  const field = document.getElementById('currentPage');
+  const page = parseInt(field.value);  
+  const updated = page + 1;
+  field.value = `${updated}`;
+});
+
 // Paste copied pixels into document
 async function pasteSelection() {
   const batchPlay = require('photoshop').action.batchPlay;
@@ -155,6 +172,10 @@ const doEverything = async () => {
   const { localFileSystem: fileSys } = require('uxp').storage;
   const folderRef = await fileSys.getFolder();
 
+  if (!folderRef) {
+    throw new Error('No folder reference!');
+  }
+
   const {
     pageRows,
     pageCols,
@@ -181,25 +202,72 @@ const doEverything = async () => {
 
   const frameNums = generateFrameNums({ pages, pageCols, pageRows, cols });
 
-  const pageNum = 1;
-  const indices = frameNums[pageNum - 1];
+  const pageLayerNames = getPageLayerNames();
 
-  try {
-    for (let i = 0; i < indices.length; i++) {
-      const { top, left, bottom, right } = bounds[i];
+  // THIS IS GETTING TOO COMPLICATED
+  // TRY REVERTING TO MANUAL PAGE SELECTION INSTEAD
+  // OF HAVING THE PROGRAM AUTOMATICALLY TRAVERSE PAGES
+  // pageLayerNames.forEach(async (layerName) => {
+  //   toggleLayers(layerName);
 
-      await createSelection({ top, left, bottom, right });
-      await copySelection();
-      await newDoc({ width: right - left, height: bottom - top });
-      await pasteSelection();
+  //   const pageNum = parseInt(layerName.split('-')[1]);
+  //   // console.log('frameNums', frameNums);
+  //   const indices = frameNums[pageNum - 1];
+  //   console.log('indices', indices);
 
-      const newFile = await folderRef.createFile(`frames-${indices[i]}.jpg`);
-      const saveFile = await fileSys.createSessionToken(newFile);
-      await exportFile(saveFile);
-    }
-  } catch (err) {
-    console.error('Error:', err);
-  }
+  //   // console.log('indices', indices);
+  //   console.log('show layer', layerName);
+
+  //   try {
+  //     for (let i = 0; i < indices.length; i++) {
+  //       const { top, left, bottom, right } = bounds[i];
+
+  //       // await require('photoshop').core.executeAsModal(() =>
+  //       //   createSelection({ top, left, bottom, right })
+  //       // );
+  //       // await require('photoshop').core.executeAsModal(copySelection);
+  //       // await require('photoshop').core.executeAsModal(() =>
+  //       //   newDoc({ width: right - left, height: bottom - top })
+  //       // );
+  //       // await require('photoshop').core.executeAsModal(pasteSelection);
+
+  //       console.log('export file', `frames-${indices[i]}.jpg`);
+
+  //       // const fileRef = await folderRef.createFile(`frames-${indices[i]}.jpg`);
+  //       // const saveFile = await fileSys.createSessionToken(fileRef);
+  //       // await require('photoshop').core.executeAsModal(() =>
+  //       //   exportFile(saveFile)
+  //       // );
+  //     }
+  //   } catch (err) {
+  //     console.error('Error:', err);
+  //   }
+  // });
+
+  // toggleLayers('', true);
+
+  // toggleLayers('page-3');
+  // console.log('name', pageLayerNames);
+
+  // const pageNum = 1;
+  // const indices = frameNums[pageNum - 1];
+
+  // try {
+  //   for (let i = 0; i < indices.length; i++) {
+  //     const { top, left, bottom, right } = bounds[i];
+
+  //     await createSelection({ top, left, bottom, right });
+  //     await copySelection();
+  //     await newDoc({ width: right - left, height: bottom - top });
+  //     await pasteSelection();
+
+  //     const newFile = await folderRef.createFile(`frames-${indices[i]}.jpg`);
+  //     const saveFile = await fileSys.createSessionToken(newFile);
+  //     await exportFile(saveFile);
+  //   }
+  // } catch (err) {
+  //   console.error('Error:', err);
+  // }
 };
 
 const exportFile = async (saveFileRef) => {
@@ -210,7 +278,6 @@ const exportFile = async (saveFileRef) => {
   try {
     await action.batchPlay(params.commands, params.options);
     app.activeDocument.closeWithoutSaving();
-
   } catch (err) {
     console.error('Save failed:', err);
   }
@@ -266,19 +333,18 @@ function toggleLayers(layerName, showAll) {
     return;
   }
 
-  // Hide all layers
+  // Hide or show layers
   for (let i = 0; i < layers.length; i++) {
-    layers[i].visible = false;
-  }
-
-  const specifiedLayer = layers.getByName(layerName);
-  if (specifiedLayer !== null) {
-    specifiedLayer.visible = true;
-  }
-
-  const bgLayerRef = layers.getByName('base');
-  if (bgLayerRef !== null) {
-    bgLayerRef.visible = true;
+    if (layers[i].name === layerName) {
+      layers[i].visible = true;
+      // console.log(layerName, 'show');
+    } else if (layers[i].name === 'base') {
+      layers[i].visible = true;
+      // console.log('base', 'show');
+    } else {
+      layers[i].visible = false;
+      // console.log(layers[i].name, 'hide');
+    }
   }
 }
 
