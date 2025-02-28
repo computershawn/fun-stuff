@@ -1,6 +1,6 @@
 {
-  "id": "my first plugin jiof3a",
-  "name": "my first plugin",
+  "id": "fun stuff",
+  "name": "fun stuff",
   "version": "1.0.0",
   "main": "index.html",
   "host": [
@@ -54,7 +54,7 @@
         }
       ],
       "label": {
-        "default": "Starter Panel"
+        "default": "Fun Stuff!"
       }
     }
   ],
