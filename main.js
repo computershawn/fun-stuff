@@ -1,6 +1,3 @@
-const padX = 120;
-const padY = 120;
-
 const prevBtn = document.getElementById('prev');
 const nextBtn = document.getElementById('next');
 
@@ -112,34 +109,33 @@ async function newDoc({ width, height }) {
 // Generate indices for each frame in the page. This version of the function
 // allows columns to span multiple pages. Variable 'cols' should always be
 // a multiple of pageCols. For example, if cols is 12, pageCols should be 3.
-function generateFrameNums({
-  pages = 1,
-  pageCols = 1,
-  pageRows = 1,
-  cols = 1,
-}) {
-  const perPage = pageCols * pageRows;
-  const temp = [];
-  let r = 0;
+// function generateFrameNums({
+//   pages = 1,
+//   pageCols = 1,
+//   pageRows = 1,
+// }) {
+//   const perPage = pageCols * pageRows;
+//   const temp = [];
+//   let r = 0;
 
-  for (let i = 0; i < pages; i++) {
-    const nums = [];
-    for (let j = 0; j < pageRows; j++) {
-      for (let k = 0; k < pageCols; k++) {
-        const n = i % 2 === 1 ? pageCols : 0;
-        const u = Math.floor(r / (2 * perPage)) * (2 * perPage);
-        nums.push(cols * j + k + n + 1 + u);
-        r += 1;
-      }
-    }
-    temp.push(nums);
-  }
+//   for (let i = 0; i < pages; i++) {
+//     const nums = [];
+//     for (let j = 0; j < pageRows; j++) {
+//       for (let k = 0; k < pageCols; k++) {
+//         const n = i % 2 === 1 ? pageCols : 0;
+//         const u = Math.floor(r / (2 * perPage)) * (2 * perPage);
+//         nums.push(cols * j + k + n + 1 + u);
+//         r += 1;
+//       }
+//     }
+//     temp.push(nums);
+//   }
 
-  return temp;
-}
+//   return temp;
+// }
 
 // Calculate top/bottom/left/right bounds for each frame
-function getBounds({ xOff, yOff, xGap, yGap, wd, ht, pageRows, pageCols }) {
+function getBounds({ xOff, yOff, xGap, yGap, padX, padY, wd, ht, pageRows, pageCols }) {
   const temp = [];
   for (let i = 0; i < pageRows; i++) {
     for (let j = 0; j < pageCols; j++) {
@@ -197,14 +193,15 @@ const doEverything = async () => {
   const {
     pageRows,
     pageCols,
-    expanded: cols,
     xOffset: xOff,
     width: wd,
     xGap,
+    padX,
     yOffset: yOff,
     height: ht,
     yGap,
-    pages,
+    padY,
+    // pages,
   } = getValues();
 
   const bounds = getBounds({
@@ -212,19 +209,22 @@ const doEverything = async () => {
     yOff,
     xGap,
     yGap,
+    padX,
+    padY,
     wd,
     ht,
     pageRows,
     pageCols,
   });
 
-  const frameNums = generateFrameNums({ pages, pageCols, pageRows, cols });
   const field = document.getElementById('currentPage');
   const pageNum = parseInt(field.value);
-  const indices = frameNums[pageNum - 1];
+
+  const frameCount = pageRows * pageCols;
+  const offsetIndex = (pageNum - 1) * frameCount;
 
   try {
-    for (let i = 0; i < indices.length; i++) {
+    for (let i = 0; i < frameCount; i++) {
       const { top, left, bottom, right } = bounds[i];
 
       await require('photoshop').core.executeAsModal(() =>
@@ -236,7 +236,9 @@ const doEverything = async () => {
       );
       await require('photoshop').core.executeAsModal(pasteSelection);
 
-      const fileRef = await folderRef.createFile(`frames-${indices[i]}.jpg`);
+      const fileRef = await folderRef.createFile(
+        `frames-${offsetIndex + i + 1}.jpg`
+      );
       const saveFile = await fileSys.createSessionToken(fileRef);
       await require('photoshop').core.executeAsModal(() =>
         exportFile(saveFile)
@@ -267,14 +269,15 @@ function getValues() {
   const varbs = [
     'pageRows',
     'pageCols',
-    'expanded',
     'xOffset',
     'width',
+    'padX',
     'xGap',
     'yOffset',
     'height',
+    'padY',
     'yGap',
-    'pages',
+    // 'pages',
   ];
   const temp = varbs.reduce((prev, curr) => {
     const val = document.getElementById(curr).value;
@@ -287,20 +290,20 @@ function getValues() {
   return temp;
 }
 
-function getPageLayerNames() {
-  const { app } = require('photoshop');
-  var { layers } = app.activeDocument;
+// function getPageLayerNames() {
+//   const { app } = require('photoshop');
+//   var { layers } = app.activeDocument;
 
-  const temp = layers.reduce((acc, curr) => {
-    if (/^page-\d+$/.test(curr.name)) {
-      acc.push(curr.name);
-    }
+//   const temp = layers.reduce((acc, curr) => {
+//     if (/^page-\d+$/.test(curr.name)) {
+//       acc.push(curr.name);
+//     }
 
-    return acc;
-  }, []);
+//     return acc;
+//   }, []);
 
-  return temp.sort();
-}
+//   return temp.sort();
+// }
 
 function toggleLayers(layerName, showAll) {
   const { app } = require('photoshop');
