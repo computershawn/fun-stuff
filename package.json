@@ -1,7 +1,7 @@
 {
-  "name": "uxp-template-ps-starter",
+  "name": "sprite-sheet-to-frames",
   "version": "1.0.0",
-  "description": "Starter template for creating Adobe UXP based-Photoshop plugin.",
+  "description": "Photoshp plugin to export sprite sheet artwork to series of JPEG images.",
   "author": "Adobe Inc",
   "license": "Apache-2.0"
 }
