@@ -249,7 +249,7 @@ const doEverything = async () => {
   }
 
   // Show all layers after export
-  toggleLayers('', true);
+  // toggleLayers('', true);
 };
 
 const exportFile = async (saveFileRef) => {
@@ -335,6 +335,6 @@ function toggleLayers(layerName, showAll) {
 // Batch export individual frames to JPEGs
 document.getElementById('btnExport').addEventListener('click', () => {
   require('photoshop').core.executeAsModal(doEverything, {
-    commandName: 'Generic name of the command',
+    commandName: 'Batch export frames to JPEG',
   });
 });
